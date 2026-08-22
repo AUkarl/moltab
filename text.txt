@@ -1,0 +1,11 @@
+moltab-source/
+├── manifest.json
+├── newtab.html
+├── style.css
+├── script.js
+├── README.md
+└── icons/
+    ├── icon16.png
+    ├── icon48.png
+    ├── icon96.png
+    └── icon128.png

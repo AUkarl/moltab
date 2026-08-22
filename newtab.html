@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MolTab · 极简搜索</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>M</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-overlay" id="bgOverlay"></div>
+    <div class="top-bar">
+        <div class="weather-widget" id="weatherWidget"><span class="weather-icon" id="weatherIcon">☁️</span><div class="weather-info"><span class="weather-city" id="weatherCity">定位中...</span><span class="weather-temp" id="weatherTemp">--°</span><span class="weather-desc" id="weatherDesc">--</span></div></div>
+        <button class="settings-btn" id="settingsBtn">⚙️</button>
+    </div>
+    <div class="main-container">
+        <div class="time-display" id="timeDisplay">00:00:00</div>
+        <div class="date-display" id="dateDisplay"><span>1月1日 星期一 · 农历腊月初一</span></div>
+        <div class="search-container">
+            <div class="engine-selector"><button class="engine-btn" id="engineBtn"><span id="engineBtnText">百度</span><span class="arrow" id="engineArrow">▾</span></button>
+                <div class="engine-dropdown" id="engineDropdown">
+                    <div class="engine-option selected" data-engine="baidu"><span class="engine-dot"></span>百度</div>
+                    <div class="engine-option" data-engine="bing"><span class="engine-dot"></span>必应</div>
+                    <div class="engine-option" data-engine="google"><span class="engine-dot"></span>谷歌</div>
+                    <div class="engine-option" data-engine="duckduckgo"><span class="engine-dot"></span>DuckDuckGo</div>
+                    <div class="engine-option" data-engine="yandex"><span class="engine-dot"></span>Yandex</div>
+                    <div class="engine-option" data-engine="sogou"><span class="engine-dot"></span>搜狗</div>
+                    <div class="engine-option" data-engine="360"><span class="engine-dot"></span>360搜索</div>
+                </div>
+            </div>
+            <input type="text" class="search-input" id="searchInput" placeholder="输入关键词搜索..." autocomplete="off">
+            <button class="search-clear-btn" id="searchClearBtn">✕</button>
+            <button class="search-submit-btn" id="searchSubmitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+        </div>
+        <div class="bookmarks-container" id="bookmarksContainer"></div>
+    </div>
+    <div class="hitokoto-container" id="hitokotoContainer"><div class="hitokoto-text" id="hitokotoText"></div><div class="hitokoto-source" id="hitokotoSource"></div></div>
+
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal-dialog">
+            <div class="modal-header"><h3>设置</h3><button class="modal-close-btn" id="modalCloseBtn">✕</button></div>
+            <div class="modal-tabs" id="modalTabs">
+                <button class="modal-tab active" data-tab="bg">背景</button>
+                <button class="modal-tab" data-tab="weather">天气</button>
+                <button class="modal-tab" data-tab="bookmarks">书签</button>
+                <button class="modal-tab" data-tab="hitokoto">一言</button>
+                <button class="modal-tab" data-tab="export">备份</button>
+                <button class="modal-tab" data-tab="about">关于</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="legalModal">
+        <div class="modal-dialog" style="max-width:600px;">
+            <div class="modal-header"><h3 id="legalTitle">条款</h3><button class="modal-close-btn" id="legalCloseBtn">✕</button></div>
+            <div class="modal-body" id="legalContent" style="white-space:pre-wrap;font-size:14px;line-height:1.8;color:var(--modal-text);"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="qrcodeModal">
+        <div class="modal-dialog" style="max-width:320px;text-align:center;">
+            <div class="modal-header"><h3>支持我们</h3><button class="modal-close-btn" id="qrcodeCloseBtn">✕</button></div>
+            <div class="modal-body" style="align-items:center;">
+                <img id="qrcodeImg" src="" alt="二维码" style="width:200px;height:200px;margin:0 auto;">
+                <p style="margin-top:12px;font-size:13px;color:var(--modal-text);">感谢您的支持！</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

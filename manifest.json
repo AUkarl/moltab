@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "MolTab · 极简搜索",
+  "version": "1.0.1",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "x@molyun.com"
+    }
+  },
+  "description": "一个极简的浏览器起始页，支持多引擎搜索、天气、壁纸、书签和一言。",
+  "icons": {
+    "128": "icons/icon128.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src *; img-src * data:; style-src 'self' 'unsafe-inline';"
+  },
+  "permissions": []
+}
