@@ -150,7 +150,7 @@ MolTab 是一款纯前端实现的浏览器新标签页，零追踪、零广告�
 
 ### 浏览器扩展
 
-可以直接下载项目自行加载扩展，或直接下载位于 ` [releases](https://github.com/AUkarl/moltab/releases) ` 目录下已打包的扩展（但Chrome和Edge新版本可能无法使用）：
+可以直接下载项目自行加载扩展，或直接下载位于 [releases](https://github.com/AUkarl/moltab/releases) 目录下已打包的扩展（但Chrome和Edge新版本可能无法使用）：
 
 - **Chrome**：`moltab-chrome-extension.crx` → 开发者模式加载
 - **Edge**：`moltab-edge-extension.crx` → 开发者模式加载
