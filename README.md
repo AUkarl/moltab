@@ -4,6 +4,7 @@
     <em>一款极简的新标签页扩展，注重隐私，数据仅存本地</em>
   </p>
   <p align="center">
+    <a href="https://tab.molx.net/">在线演示</a> •
     <a href="#功能特性">功能特性</a> •
     <a href="#技术架构">技术架构</a> •
     <a href="#安装使用">安装使用</a> •
@@ -149,11 +150,11 @@ MolTab 是一款纯前端实现的浏览器新标签页，零追踪、零广告�
 
 ### 浏览器扩展
 
-项目包含 Chrome、Edge、Firefox 扩展配置文件，位于 `tab插件/` 目录下：
+可以直接下载项目自行加载扩展，或直接下载位于 `<P><a href="https://github.com/AUkarl/moltab/releases">功能特性</a></p>` 目录下已打包的扩展（但Chrome和Edge新版本可能无法使用）：
 
-- **Chrome**：`tab插件/Chrome/` → 开发者模式加载
-- **Edge**：`tab插件/edge/` → 开发者模式加载
-- **Firefox**：`tab插件/firfox/` → 临时加载附加组件
+- **Chrome**：`moltab-chrome-extension.crx` → 开发者模式加载
+- **Edge**：`moltab-edge-extension.crx` → 开发者模式加载
+- **Firefox**：`moltab-firefox-2.0.0.xpi` → 临时加载附加组件
 
 扩展版本额外支持：
 - 智能标签页管理（按域名自动分组）
