@@ -3,6 +3,8 @@
  * 支持 7 个搜索引擎切换、搜索历史（最多50条）、历史建议下拉、键盘快捷键
  * 快捷键：Ctrl+K 聚焦搜索框、/ 聚焦、Esc 退出、1-9 快速打开书签、? 帮助
  */
+import { IS_EXTENSION } from './env.js';
+
 export class SearchManager {
     constructor() {
         // 搜索引擎配置：key -> {名称, 搜索URL前缀}
@@ -25,6 +27,7 @@ export class SearchManager {
         this.dropdown = document.getElementById('engineDropdown');
         this.historyList = [];
         this.historyDropdown = null;
+        this.suggestionProvider = null;
         try { this.historyList = JSON.parse(localStorage.getItem('moltap-search-history') || '[]'); } catch { this.historyList = []; }
     }
 
@@ -51,10 +54,25 @@ export class SearchManager {
             if (this.historyDropdown && !this.historyDropdown.contains(e.target) && e.target !== this.input) this.hideHistory();
         });
         this.initKeyboardShortcuts();
+
+        if (!IS_EXTENSION && window.__MOLTAB_PROXY__) {
+            this.suggestionProvider = async (query) => {
+                try {
+                    const results = await window.__MOLTAB_PROXY__.historySearch(query);
+                    return (results || []).map(r => ({ label: r.title || r.url, url: r.url }));
+                } catch { return []; }
+            };
+        }
     }
 
     /** 注册全局键盘快捷键 */
     initKeyboardShortcuts() {
+        const isTyping = () => {
+            const el = document.activeElement;
+            if (!el) return false;
+            const tag = el.tagName;
+            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+        };
         document.addEventListener('keydown', e => {
             const modal = document.getElementById('modalOverlay');
             const kbdHelp = document.getElementById('kbdHelpOverlay');
@@ -67,19 +85,19 @@ export class SearchManager {
             // Ctrl+, 打开设置
             if (e.ctrlKey && e.key === ',') { e.preventDefault(); document.getElementById('settingsBtn')?.click(); return; }
             // ? 显示/隐藏键盘帮助
-            if (e.key === '?' && this.input !== document.activeElement && !e.ctrlKey && !e.altKey) {
+            if (e.key === '?' && !isTyping() && !e.ctrlKey && !e.altKey) {
                 e.preventDefault();
                 kbdHelp?.classList.toggle('hidden');
                 return;
             }
             // / 聚焦搜索框
-            if (e.key === '/' && this.input !== document.activeElement && !e.ctrlKey && !e.altKey) {
+            if (e.key === '/' && !isTyping() && !e.ctrlKey && !e.altKey) {
                 e.preventDefault();
                 this.input.focus();
                 return;
             }
             // 数字键 1-9 快速打开对应书签
-            if (this.input !== document.activeElement && !e.ctrlKey && !e.altKey && !e.metaKey && /^[1-9]$/.test(e.key)) {
+            if (!isTyping() && !e.ctrlKey && !e.altKey && !e.metaKey && /^[1-9]$/.test(e.key)) {
                 const bookmarks = document.querySelectorAll('.bookmark-item:not(.folder)');
                 const idx = parseInt(e.key) - 1;
                 if (bookmarks[idx]) {
@@ -126,11 +144,11 @@ export class SearchManager {
         localStorage.setItem('moltap-search-history', JSON.stringify(this.historyList));
     }
 
-    /** 显示搜索历史建议下拉（最多6条，按输入过滤） */
+    /** 显示搜索历史建议下拉（本地历史 + 扩展浏览器历史合并） */
     showHistorySuggestions(query) {
         this.hideHistory();
         const filtered = query ? this.historyList.filter(h => h.toLowerCase().includes(query.toLowerCase())).slice(0, 6) : this.historyList.slice(0, 6);
-        if (!filtered.length) return;
+        if (!filtered.length && !this.suggestionProvider) return;
         if (!this.historyDropdown) {
             this.historyDropdown = document.createElement('div');
             this.historyDropdown.className = 'search-history-dropdown';
@@ -140,8 +158,28 @@ export class SearchManager {
         this.historyDropdown.classList.add('active');
         this.historyDropdown.addEventListener('click', e => {
             const item = e.target.closest('.history-item');
-            if (item) { this.input.value = item.dataset.q; this.search(item.dataset.q); }
+            if (!item) return;
+            if (item.dataset.url) { window.open(item.dataset.url, '_self'); }
+            else { this.input.value = item.dataset.q; this.search(item.dataset.q); }
         });
+        if (this.suggestionProvider && query) {
+            this.suggestionProvider(query).then(items => {
+                if (!items?.length) return;
+                const existing = this.historyDropdown.querySelector('.browser-divider');
+                if (existing) existing.remove();
+                const divider = document.createElement('div');
+                divider.className = 'browser-divider';
+                divider.textContent = '浏览历史';
+                this.historyDropdown.appendChild(divider);
+                items.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'history-item browser';
+                    el.dataset.url = item.url;
+                    el.innerHTML = `<span class="history-label">${this.esc(item.label)}</span><span class="history-url">${this.esc(item.url)}</span>`;
+                    this.historyDropdown.appendChild(el);
+                });
+            }).catch(() => {});
+        }
     }
 
     hideHistory() { if (this.historyDropdown) { this.historyDropdown.classList.remove('active'); } }

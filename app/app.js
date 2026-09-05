@@ -2,6 +2,7 @@
  * MolTab 入口模块
  * 负责实例化所有功能模块并初始化，注册 Service Worker
  */
+import { IS_EXTENSION } from './env.js';
 import { TimeManager } from './time.js';
 import { SearchManager } from './search.js';
 import { WeatherManager } from './weather.js';
@@ -47,9 +48,12 @@ grid.init();
 settings.init();
 time.start();
 
-// 注册 Service Worker 实现离线缓存
-if ('serviceWorker' in navigator) {
+// 注册 Service Worker 实现离线缓存（扩展环境下不可用）
+if (!IS_EXTENSION && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
     });
 }
+
+// 暴露管理器实例供扩展专属模块调用
+window.__moltab = { search, bookmarks, settings, wallpaper, theme, weather, hitokoto, focus, grid };
