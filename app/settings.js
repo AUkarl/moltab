@@ -507,15 +507,6 @@ export class SettingsManager {
 
     // 渲染「数据」标签页：导出/导入 JSON、清除数据、清除图标缓存、WebDAV 云同步配置与操作
     renderData() {
-        const hasProxy = () => !IS_EXTENSION && !!window.__MOLTAB_PROXY__;
-        const webdavFetch = async (url, options) => {
-            if (hasProxy()) {
-                const r = await window.__MOLTAB_PROXY__.webdavFetch(url, options);
-                return new Response(r.body, { status: r.status, statusText: r.statusText });
-            }
-            return fetch(url, options);
-        };
-
         this.body.innerHTML = `
             <div class="section-title">数据管理</div>
             <div class="setting-row">
@@ -555,18 +546,13 @@ export class SettingsManager {
                 · 浏览历史搜索建议：搜索框输入时自动显示<br>
                 · 智能标签页管理：按域名分组管理所有标签页<br>
                 · WebDAV 自动同步：打开新标签页时自动检查更新
-            </div>` : (window.__MOLTAB_PROXY__ ? `
-            <div style="font-size:12px;color:#22c55e;line-height:1.6;padding:4px 0">
-                ✓ 扩展代理已连接，WebDAV 同步与浏览历史建议可用
-            </div>
-            <div class="section-title" style="margin-top:8px;font-size:13px">智能标签页管理</div>
-            <div id="proxyTabsPanel"></div>` : `
+            </div>` : `
             <div style="font-size:12px;color:var(--text-tertiary);line-height:1.6;padding:8px 0">
                 以下功能需要浏览器扩展支持，将在扩展版本中提供：<br>
                 · 智能标签页管理（按域名自动分组）<br>
                 · 浏览历史搜索建议<br>
                 · 跨设备实时同步
-            </div>`)}`;
+            </div>`}`;
         this.body.querySelector('#exportData').addEventListener('click', () => {
             const data = {
                 bookmarks: JSON.parse(this.bookmarks.exportData()),
@@ -633,7 +619,7 @@ export class SettingsManager {
             statusEl.textContent = '测试中...';
             statusEl.style.color = 'var(--text-tertiary)';
             try {
-                const resp = await webdavFetch(url + '/', {
+                const resp = await fetch(url + '/', {
                     method: 'PROPFIND',
                     headers: {
                         'Depth': '0',
@@ -651,7 +637,7 @@ export class SettingsManager {
                     statusEl.style.color = 'var(--warning)';
                 }
             } catch (e) {
-                if (!IS_EXTENSION && !hasProxy() && (e.message === 'Failed to fetch' || e.name === 'TypeError')) {
+                if (!IS_EXTENSION && (e.message === 'Failed to fetch' || e.name === 'TypeError')) {
                     statusEl.textContent = '连接失败：服务器不支持 CORS 跨域访问，浏览器页面无法直接连接。可通过浏览器扩展使用 WebDAV 同步';
                 } else {
                     statusEl.textContent = '连接失败：' + e.message;
@@ -678,12 +664,12 @@ export class SettingsManager {
                     'Content-Type': 'application/json'
                 };
                 const authHeaders = this._getWebdavHeaders(user, pass);
-                await webdavFetch(url + '/', { method: 'MKCOL', headers: authHeaders }).catch(() => {});
-                let resp = await webdavFetch(url + '/moltap-backup.json', { method: 'PUT', headers: putHeaders, body: JSON.stringify(data) });
+                await fetch(url + '/', { method: 'MKCOL', headers: authHeaders }).catch(() => {});
+                let resp = await fetch(url + '/moltap-backup.json', { method: 'PUT', headers: putHeaders, body: JSON.stringify(data) });
                 if (resp.status === 404 || resp.status === 409) {
                     const subUrl = url + '/moltap';
-                    await webdavFetch(subUrl + '/', { method: 'MKCOL', headers: authHeaders }).catch(() => {});
-                    resp = await webdavFetch(subUrl + '/moltap-backup.json', { method: 'PUT', headers: putHeaders, body: JSON.stringify(data) });
+                    await fetch(subUrl + '/', { method: 'MKCOL', headers: authHeaders }).catch(() => {});
+                    resp = await fetch(subUrl + '/moltap-backup.json', { method: 'PUT', headers: putHeaders, body: JSON.stringify(data) });
                     if (resp.ok) {
                         url = subUrl;
                         localStorage.setItem('moltap-webdav-url', subUrl);
@@ -696,7 +682,7 @@ export class SettingsManager {
                 statusEl.style.color = '#22c55e';
                 this.toast('已上传到云端');
             } catch (e) {
-                if (!IS_EXTENSION && !hasProxy() && (e.message === 'Failed to fetch' || e.name === 'TypeError')) {
+                if (!IS_EXTENSION && (e.message === 'Failed to fetch' || e.name === 'TypeError')) {
                     statusEl.textContent = '上传失败：服务器不支持 CORS 跨域访问';
                 } else {
                     statusEl.textContent = '上传失败：' + e.message;
@@ -715,10 +701,10 @@ export class SettingsManager {
             statusEl.style.color = 'var(--text-tertiary)';
             try {
                 const getHeaders = user ? { 'Authorization': 'Basic ' + btoa(user + ':' + pass) } : {};
-                let resp = await webdavFetch(url + '/moltap-backup.json', { headers: getHeaders });
+                let resp = await fetch(url + '/moltap-backup.json', { headers: getHeaders });
                 if (resp.status === 404) {
                     const subUrl = url + '/moltap';
-                    resp = await webdavFetch(subUrl + '/moltap-backup.json', { headers: getHeaders });
+                    resp = await fetch(subUrl + '/moltap-backup.json', { headers: getHeaders });
                     if (resp.ok) {
                         url = subUrl;
                         localStorage.setItem('moltap-webdav-url', subUrl);
@@ -737,7 +723,7 @@ export class SettingsManager {
                 statusEl.style.color = '#22c55e';
                 this.toast('已从云端下载，刷新生效');
             } catch (e) {
-                if (!IS_EXTENSION && !hasProxy() && (e.message === 'Failed to fetch' || e.name === 'TypeError')) {
+                if (!IS_EXTENSION && (e.message === 'Failed to fetch' || e.name === 'TypeError')) {
                     statusEl.textContent = '下载失败：服务器不支持 CORS 跨域访问';
                 } else {
                     statusEl.textContent = '下载失败：' + e.message;
@@ -746,79 +732,6 @@ export class SettingsManager {
                 this.toast('下载失败');
             }
         });
-
-        if (!IS_EXTENSION && window.__MOLTAB_PROXY__) {
-            this._renderProxyTabsPanel();
-        }
-    }
-
-    async _renderProxyTabsPanel() {
-        const container = this.body.querySelector('#proxyTabsPanel');
-        if (!container) return;
-        container.innerHTML = '<div style="font-size:12px;color:var(--text-tertiary)">加载中...</div>';
-
-        const getDomain = (url) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return '其他'; } };
-        const esc = (s) => { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; };
-
-        try {
-            const tabs = await window.__MOLTAB_PROXY__.queryTabs();
-            const groups = {};
-            tabs.forEach(t => {
-                const domain = getDomain(t.url);
-                if (!groups[domain]) groups[domain] = [];
-                groups[domain].push(t);
-            });
-            const sorted = Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
-
-            let html = `<div class="tabs-toolbar"><button class="btn-sm" id="proxyTabsRefresh">🔄 刷新</button><button class="btn-sm" id="proxyTabsCloseDup">关闭重复标签</button></div><div class="tabs-groups">`;
-            sorted.forEach(([domain, tabs]) => {
-                html += `<details class="tabs-group" open><summary class="tabs-group-header"><span>${esc(domain)}</span><span class="tabs-count">${tabs.length}</span><button class="btn-sm danger proxy-close-group" data-domain="${esc(domain)}" style="font-size:10px;padding:2px 8px;margin-left:auto">关闭</button></summary><div class="tabs-group-body">`;
-                tabs.forEach(t => {
-                    html += `<div class="tabs-row" data-tab-id="${t.id}"><img class="tabs-favicon" src="${esc(t.favIconUrl || '')}" alt=""><span class="tabs-title">${esc(t.title || t.url)}</span></div>`;
-                });
-                html += `</div></details>`;
-            });
-            html += '</div>';
-            container.innerHTML = html;
-
-            container.querySelectorAll('.tabs-favicon').forEach(img => {
-                img.addEventListener('error', () => { img.style.display = 'none'; });
-            });
-
-            container.querySelector('#proxyTabsRefresh')?.addEventListener('click', () => this._renderProxyTabsPanel());
-
-            container.querySelector('#proxyTabsCloseDup')?.addEventListener('click', async () => {
-                const allTabs = await window.__MOLTAB_PROXY__.queryTabs();
-                const seen = new Map();
-                const dupes = [];
-                allTabs.forEach(t => {
-                    if (seen.has(t.url)) dupes.push(t.id);
-                    else seen.set(t.url, t.id);
-                });
-                if (dupes.length) await window.__MOLTAB_PROXY__.closeTabs(dupes);
-                this._renderProxyTabsPanel();
-            });
-
-            container.querySelectorAll('.proxy-close-group').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const domain = btn.dataset.domain;
-                    const allTabs = await window.__MOLTAB_PROXY__.queryTabs();
-                    const ids = allTabs.filter(t => getDomain(t.url) === domain).map(t => t.id);
-                    if (ids.length) await window.__MOLTAB_PROXY__.closeTabs(ids);
-                    this._renderProxyTabsPanel();
-                });
-            });
-
-            container.querySelectorAll('.tabs-row').forEach(row => {
-                row.addEventListener('click', () => {
-                    window.__MOLTAB_PROXY__.activateTab(Number(row.dataset.tabId));
-                });
-            });
-        } catch {
-            container.innerHTML = '<div style="font-size:12px;color:var(--text-tertiary)">加载失败</div>';
-        }
     }
 
     // 渲染「关于」标签页：版本信息、隐私标签、更新日志（v1.0.0 ~ v2.0.0）、法律链接

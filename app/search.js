@@ -3,8 +3,6 @@
  * 支持 7 个搜索引擎切换、搜索历史（最多50条）、历史建议下拉、键盘快捷键
  * 快捷键：Ctrl+K 聚焦搜索框、/ 聚焦、Esc 退出、1-9 快速打开书签、? 帮助
  */
-import { IS_EXTENSION } from './env.js';
-
 export class SearchManager {
     constructor() {
         // 搜索引擎配置：key -> {名称, 搜索URL前缀}
@@ -54,15 +52,6 @@ export class SearchManager {
             if (this.historyDropdown && !this.historyDropdown.contains(e.target) && e.target !== this.input) this.hideHistory();
         });
         this.initKeyboardShortcuts();
-
-        if (!IS_EXTENSION && window.__MOLTAB_PROXY__) {
-            this.suggestionProvider = async (query) => {
-                try {
-                    const results = await window.__MOLTAB_PROXY__.historySearch(query);
-                    return (results || []).map(r => ({ label: r.title || r.url, url: r.url }));
-                } catch { return []; }
-            };
-        }
     }
 
     /** 注册全局键盘快捷键 */
