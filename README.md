@@ -195,13 +195,6 @@ moltab/
 │   └── style.css       # 全部样式
 ├── fonts/              # IcoMoon 图标字体
 ├── img/                # 图片资源
-├── privacy/
-│   └── tab.html        # 隐私政策与版权声明
-├── tab插件/             # 浏览器扩展
-│   ├── Chrome/
-│   ├── edge/
-│   └── firfox/
-├── CHANGELOG.md        # 更新日志
 ├── LICENSE             # MIT 许可证
 └── README.md           # 本文件
 ```
