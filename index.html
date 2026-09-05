@@ -1,0 +1,118 @@
+<!--
+  index.html — MolTab 主页面
+  纯静态 HTML 骨架，所有动态功能由 app/ 目录下的 ES 模块实现
+  页面结构：背景层 → 顶部栏(天气+设置) → 主容器(时间+日期+搜索+网格) → 一言 → 设置弹窗
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MolTab · 极简搜索</title>
+    <link rel="icon" href="img/tabicon.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 背景加载遮罩：壁纸加载完成前显示加载动画 -->
+    <div class="bg-loading"></div>
+    <!-- 背景遮罩层：用于调节壁纸亮度，适配深浅色模式 -->
+    <div class="bg-overlay" id="bgOverlay"></div>
+
+    <!-- 顶部栏：左侧天气组件 + 右侧设置按钮 -->
+    <div class="top-bar">
+        <div class="weather-widget" id="weatherWidget">
+            <span class="weather-icon" id="weatherIcon">☁️</span>
+            <div class="weather-info">
+                <span class="weather-city" id="weatherCity">定位中...</span>
+                <span class="weather-temp" id="weatherTemp">--°</span>
+                <span class="weather-desc" id="weatherDesc">--</span>
+            </div>
+        </div>
+        <button class="settings-btn" id="settingsBtn">⚙️</button>
+    </div>
+
+    <!-- 主容器：垂直排列为 时间→日期→搜索框→书签网格 -->
+    <div class="main-container">
+        <!-- 时间 + 问候语 -->
+        <div class="time-wrapper">
+            <div class="time-display" id="timeDisplay" data-local-adapt>00:00:00</div>
+            <div class="greeting-text" id="greetingText" data-local-adapt></div>
+        </div>
+        <!-- 日期（公历 + 农历） -->
+        <div class="date-display" id="dateDisplay" data-local-adapt><span>加载中...</span></div>
+        <!-- 搜索框区域：引擎选择器 + 输入框 + 清除按钮 + 搜索按钮 -->
+        <div class="search-container">
+            <div class="engine-selector">
+                <button class="engine-btn" id="engineBtn">
+                    <span id="engineBtnText">百度</span>
+                    <span class="arrow" id="engineArrow">▾</span>
+                </button>
+                <!-- 搜索引擎下拉菜单：7 个预置引擎 -->
+                <div class="engine-dropdown" id="engineDropdown">
+                    <div class="engine-option selected" data-engine="baidu"><span class="engine-dot"></span>百度</div>
+                    <div class="engine-option" data-engine="bing"><span class="engine-dot"></span>必应</div>
+                    <div class="engine-option" data-engine="google"><span class="engine-dot"></span>谷歌</div>
+                    <div class="engine-option" data-engine="duckduckgo"><span class="engine-dot"></span>DuckDuckGo</div>
+                    <div class="engine-option" data-engine="yandex"><span class="engine-dot"></span>Yandex</div>
+                    <div class="engine-option" data-engine="sogou"><span class="engine-dot"></span>搜狗</div>
+                    <div class="engine-option" data-engine="360"><span class="engine-dot"></span>360搜索</div>
+                </div>
+            </div>
+            <input type="text" class="search-input" id="searchInput" placeholder="输入关键词搜索..." autocomplete="off" data-local-adapt>
+            <button class="search-clear-btn" id="searchClearBtn">✕</button>
+            <button class="search-submit-btn" id="searchSubmitBtn">
+                <!-- 搜索图标（SVG 放大镜） -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </button>
+        </div>
+        <!-- 书签/组件网格容器：12×3 CSS Grid，由 GridManager 动态渲染 -->
+        <div class="grid-container" id="gridContainer"></div>
+    </div>
+
+    <!-- 键盘快捷键帮助弹窗（按 ? 键显示） -->
+    <div class="kbd-help-overlay hidden" id="kbdHelpOverlay">
+        <div class="kbd-help-card">
+            <h3>键盘快捷键</h3>
+            <div class="kbd-row"><span class="kbd-label">聚焦搜索框</span><span><kbd>Ctrl</kbd>+<kbd>K</kbd> 或 <kbd>/</kbd></span></div>
+            <div class="kbd-row"><span class="kbd-label">快速打开书签</span><span><kbd>1</kbd>-<kbd>9</kbd></span></div>
+            <div class="kbd-row"><span class="kbd-label">关闭/退出</span><span><kbd>Esc</kbd></span></div>
+            <div class="kbd-row"><span class="kbd-label">显示帮助</span><span><kbd>?</kbd></span></div>
+            <div class="kbd-row"><span class="kbd-label">打开设置</span><span><kbd>Ctrl</kbd>+<kbd>,</kbd></span></div>
+        </div>
+    </div>
+
+    <!-- 一言（语录）组件：底部居中显示 -->
+    <div class="hitokoto-container" id="hitokotoContainer">
+        <div class="hitokoto-text" id="hitokotoText" data-local-adapt></div>
+        <div class="hitokoto-source" id="hitokotoSource" data-local-adapt></div>
+    </div>
+
+    <!-- 设置弹窗：遮罩 + 对话框 + 7 个标签页 -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>设置</h3>
+                <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+            </div>
+            <!-- 标签页导航：背景/天气/书签/一言/专注/数据/关于 -->
+            <div class="modal-tabs" id="modalTabs">
+                <button class="modal-tab active" data-tab="bg">背景</button>
+                <button class="modal-tab" data-tab="weather">天气</button>
+                <button class="modal-tab" data-tab="bookmarks">书签</button>
+                <button class="modal-tab" data-tab="hitokoto">一言</button>
+                <button class="modal-tab" data-tab="focus">专注</button>
+                <button class="modal-tab" data-tab="data">数据</button>
+                <button class="modal-tab" data-tab="about">关于</button>
+            </div>
+            <!-- 标签页内容区域：由 SettingsManager 动态渲染 -->
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- 应用入口：ES Module 方式加载，app.js 负责初始化所有模块 -->
+    <script type="module" src="app/app.js"></script>
+</body>
+</html>
